@@ -56,9 +56,7 @@ A production-ready full-stack application powered by crewAI agents and Groq API 
 - **Right Pane**: Intelligent output rendering with automatic code detection
 - **Bottom Bar**: Chat-style input with quick example buttons
 - **Terminal-Style Code**: Automatically detects and renders code with black background and green text
-- **Execution History**: Tracks all executions with status indicators (running/completed/failed)
-
-See [REDESIGN.md](REDESIGN.md) for complete documentation.
+- **Execution History**: Tracks all executions with status indicators (running/completed/failed
 
 ## Quick Start
 
@@ -155,8 +153,6 @@ See `.env.example` files in `frontend/` and `backend/` directories.
 
 ## Deployment
 
-The application is designed for cloud deployment without Docker:
-
 1. Deploy backend to any Python-compatible platform (AWS Lambda, Google Cloud Run, Railway, etc.)
 2. Deploy frontend to static hosting (Vercel, Netlify, Cloudflare Pages, etc.)
 3. Configure environment variables in your deployment platform
@@ -169,35 +165,3 @@ The application is designed for cloud deployment without Docker:
 - CORS configuration for production
 - No sensitive data logging
 
-## Development
-
-```bash
-# Run tests
-cd backend && pytest
-cd frontend && npm test
-
-# Lint
-cd backend && ruff check .
-cd frontend && npm run lint
-```
-
-## Documentation
-
-### Complete Documentation
-- **[REDESIGN.md](REDESIGN.md)** - Complete redesign documentation with architecture and features
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide for getting up and running
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture, data flow, and technical details
-- **[COMPONENT_API.md](COMPONENT_API.md)** - Component API reference and props documentation
-- **[BEFORE_AFTER.md](BEFORE_AFTER.md)** - Visual comparison of old vs new design
-- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Implementation summary and checklist
-
-### Key Documentation Highlights
-- Two-pane layout with live execution tracking
-- Intelligent code detection and terminal-style rendering
-- Chat-style input with natural language processing
-- Execution history and status tracking
-- Production-ready with no mockups or fallbacks
-
-## License
-
-MIT
