@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from crewai import Agent, Crew, Task
 from groq import Groq
+from langchain_openai import ChatOpenAI
 
 from app.intent_detector import IntentDetector
 from app.models import IntentType, ProcessResponse
@@ -142,9 +143,13 @@ class NLPProcessor:
             logger.error(f"❌ Groq API error: {e}")
             raise
 
-    def _create_llm_config(self) -> str:
+    def _create_llm_config(self) -> ChatOpenAI:
         """Create LLM configuration for crewAI"""
-        return f"groq/{self.model}"
+        return ChatOpenAI(
+            openai_api_base="https://api.groq.com/openai/v1",
+            openai_api_key=self.api_key,
+            model_name=self.model
+        )
 
     def _get_agent_role(self, intent: IntentType) -> str:
         """Get agent role based on intent"""

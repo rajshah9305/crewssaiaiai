@@ -1,4 +1,4 @@
-function Header({ onChangeApiKey, hasApiKey }) {
+function Header({ onChangeApiKey }) {
   return (
     <header className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
       <div className="px-4 py-3">
