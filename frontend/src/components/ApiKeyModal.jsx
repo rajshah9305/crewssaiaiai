@@ -84,7 +84,7 @@ function ApiKeyModal({ onSubmit }) {
         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-xs text-amber-900">
             <strong>Security:</strong> Your API key is never stored on our servers.
-            It's only kept in your browser's memory for the current session.
+            It&apos;s only kept in your browser&apos;s memory for the current session.
           </p>
         </div>
       </div>

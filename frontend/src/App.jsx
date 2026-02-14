@@ -68,7 +68,6 @@ function App() {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       
       addLog('📡 Sending to backend...', 'info')
-      const startTime = Date.now()
       
       const response = await fetch(`${apiUrl}/api/process`, {
         method: 'POST',
@@ -91,7 +90,6 @@ function App() {
 
       addLog('🤖 Processing with AI...', 'agent')
       const data = await response.json()
-      const endTime = Date.now()
       
       addLog(`✅ Intent: ${data.intent}`, 'success')
       addLog(`📈 Tokens: ${data.tokens_used}`, 'info')
@@ -127,7 +125,6 @@ function App() {
       
       <Header 
         onChangeApiKey={() => setShowApiKeyModal(true)} 
-        hasApiKey={!!apiKey}
       />
       
       {/* Two-Pane Layout */}
