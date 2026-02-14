@@ -1,11 +1,12 @@
 import re
 from typing import Tuple
+
 from app.models import IntentType
 
 
 class IntentDetector:
     """Detects user intent from natural language input"""
-    
+
     # Intent detection patterns
     PATTERNS = {
         IntentType.SUMMARIZATION: [
@@ -30,17 +31,17 @@ class IntentDetector:
             r'\b(story|article|essay|email|letter|content)\b',
         ],
     }
-    
+
     @classmethod
     def detect(cls, text: str) -> Tuple[IntentType, float]:
         """
         Detect intent from input text
-        
+
         Returns:
             Tuple of (intent, confidence_score)
         """
         text_lower = text.lower()
-        
+
         # Check each intent pattern
         scores = {}
         for intent, patterns in cls.PATTERNS.items():
@@ -50,15 +51,15 @@ class IntentDetector:
                     score += 1
             if score > 0:
                 scores[intent] = score / len(patterns)
-        
+
         # Return highest scoring intent
         if scores:
             best_intent = max(scores.items(), key=lambda x: x[1])
             return best_intent[0], best_intent[1]
-        
+
         # Default to custom if no clear intent
         return IntentType.CUSTOM, 0.5
-    
+
     @classmethod
     def get_system_prompt(cls, intent: IntentType) -> str:
         """Get system prompt for specific intent"""

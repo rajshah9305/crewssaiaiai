@@ -1,4 +1,3 @@
-import pytest
 from app.intent_detector import IntentDetector
 from app.models import IntentType
 

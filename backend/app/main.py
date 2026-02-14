@@ -1,17 +1,18 @@
 import logging
 import time
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.models import ProcessRequest, ProcessResponse, ErrorResponse
-from app.processor import NLPProcessor
+from app.models import ErrorResponse, ProcessRequest, ProcessResponse
 from app.models_config import GROQ_MODELS
+from app.processor import NLPProcessor
 
 # Configure logging
 logging.basicConfig(
@@ -117,7 +118,7 @@ async def list_models():
 async def process_text(request: Request, payload: ProcessRequest):
     """
     Process natural language text with automatic intent detection
-    
+
     - Detects intent (summarization, translation, sentiment, etc.)
     - Routes to appropriate crewAI agent or Groq model
     - Returns processed result with metadata
@@ -125,15 +126,15 @@ async def process_text(request: Request, payload: ProcessRequest):
     try:
         # Create processor with user's API key and selected model
         processor = NLPProcessor(api_key=payload.api_key, model=payload.model)
-        
+
         # Process the request
         result = await processor.process(
             text=payload.text,
             options=payload.options
         )
-        
+
         return result
-        
+
     except ValueError as e:
         logger.warning(f"Validation error: {e}")
         raise HTTPException(

@@ -1,50 +1,51 @@
-import time
 import logging
-from typing import Dict, Any
+import time
+from typing import Any, Dict
+
+from crewai import Agent, Crew, Task
 from groq import Groq
-from crewai import Agent, Task, Crew
-from app.models import IntentType, ProcessResponse
+
 from app.intent_detector import IntentDetector
-from app.config import settings
-from app.models_config import get_model_config, is_valid_model, DEFAULT_MODEL
+from app.models import IntentType, ProcessResponse
+from app.models_config import DEFAULT_MODEL, get_model_config, is_valid_model
 
 logger = logging.getLogger(__name__)
 
 
 class NLPProcessor:
     """Processes NLP requests using crewAI and Groq"""
-    
+
     def __init__(self, api_key: str, model: str = None):
         self.api_key = api_key
         self.groq_client = Groq(api_key=api_key)
-        
+
         # Validate and set model
         if model and is_valid_model(model):
             self.model = model
         else:
             self.model = DEFAULT_MODEL
-        
+
         self.model_config = get_model_config(self.model)
-    
+
     async def process(self, text: str, options: Dict[str, Any]) -> ProcessResponse:
         """Process text with automatic intent detection and routing"""
         start_time = time.time()
-        
+
         # Detect intent
         intent, confidence = IntentDetector.detect(text)
         logger.info(f"🎯 Intent detected: {intent.value} (confidence: {confidence:.2f})")
-        
+
         # Route to appropriate processor
         if confidence > 0.7 and intent != IntentType.CUSTOM:
             logger.info(f"🤖 Routing to crewAI agent for {intent.value}")
             result, tokens = await self._process_with_crew(text, intent, options)
         else:
-            logger.info(f"⚡ Using direct Groq API call")
+            logger.info("⚡ Using direct Groq API call")
             result, tokens = await self._process_with_groq(text, intent, options)
-        
+
         processing_time = time.time() - start_time
         logger.info(f"✅ Processing completed in {processing_time:.2f}s")
-        
+
         return ProcessResponse(
             intent=intent.value,
             result=result,
@@ -53,7 +54,7 @@ class NLPProcessor:
             processing_time=round(processing_time, 2),
             metadata={"confidence": confidence, "model_name": self.model_config["name"]}
         )
-    
+
     async def _process_with_crew(
         self, text: str, intent: IntentType, options: Dict[str, Any]
     ) -> tuple[str, int]:
@@ -69,15 +70,15 @@ class NLPProcessor:
                 allow_delegation=False,
                 llm=self._create_llm_config()
             )
-            
-            logger.info(f"📋 Creating task for agent")
+
+            logger.info("📋 Creating task for agent")
             # Create task
             task = Task(
                 description=text,
                 agent=agent,
                 expected_output=self._get_expected_output(intent)
             )
-            
+
             logger.info(f"🚀 Executing crew with {self.model}")
             # Execute crew
             crew = Crew(
@@ -85,31 +86,31 @@ class NLPProcessor:
                 tasks=[task],
                 verbose=False
             )
-            
+
             result = crew.kickoff()
-            
+
             # Extract result text
             result_text = str(result) if result else "No result generated"
-            
+
             # Estimate tokens (rough approximation)
             tokens = len(text.split()) + len(result_text.split())
-            
-            logger.info(f"✨ CrewAI execution completed successfully")
+
+            logger.info("✨ CrewAI execution completed successfully")
             return result_text, tokens
-            
+
         except Exception as e:
             logger.error(f"❌ CrewAI processing error: {e}")
-            logger.info(f"🔄 Falling back to direct Groq API")
+            logger.info("🔄 Falling back to direct Groq API")
             # Fallback to direct Groq call
             return await self._process_with_groq(text, intent, options)
-    
+
     async def _process_with_groq(
         self, text: str, intent: IntentType, options: Dict[str, Any]
     ) -> tuple[str, int]:
         """Process using direct Groq API call with model-specific configuration"""
         try:
             system_prompt = IntentDetector.get_system_prompt(intent)
-            
+
             # Build basic request parameters
             request_params = {
                 "model": self.model,
@@ -125,26 +126,26 @@ class NLPProcessor:
                 "top_p": options.get("top_p", 1),
                 "stream": False,
             }
-            
+
             logger.info(f"📡 Calling Groq API with model: {self.model}")
             logger.info(f"🎛️  Temperature: {request_params['temperature']}, Max tokens: {request_params['max_tokens']}")
-            
+
             response = self.groq_client.chat.completions.create(**request_params)
-            
+
             result = response.choices[0].message.content
             tokens = response.usage.total_tokens if response.usage else 0
-            
+
             logger.info(f"💬 Received response: {tokens} tokens used")
             return result, tokens
-            
+
         except Exception as e:
             logger.error(f"❌ Groq API error: {e}")
             raise
-    
+
     def _create_llm_config(self) -> str:
         """Create LLM configuration for crewAI"""
         return f"groq/{self.model}"
-    
+
     def _get_agent_role(self, intent: IntentType) -> str:
         """Get agent role based on intent"""
         roles = {
@@ -156,7 +157,7 @@ class NLPProcessor:
             IntentType.CUSTOM: "AI Assistant",
         }
         return roles.get(intent, roles[IntentType.CUSTOM])
-    
+
     def _get_agent_goal(self, intent: IntentType) -> str:
         """Get agent goal based on intent"""
         goals = {
@@ -168,7 +169,7 @@ class NLPProcessor:
             IntentType.CUSTOM: "Assist users with their requests effectively",
         }
         return goals.get(intent, goals[IntentType.CUSTOM])
-    
+
     def _get_agent_backstory(self, intent: IntentType) -> str:
         """Get agent backstory based on intent"""
         backstories = {
@@ -180,7 +181,7 @@ class NLPProcessor:
             IntentType.CUSTOM: "You are a knowledgeable AI assistant ready to help with any task.",
         }
         return backstories.get(intent, backstories[IntentType.CUSTOM])
-    
+
     def _get_expected_output(self, intent: IntentType) -> str:
         """Get expected output format based on intent"""
         outputs = {

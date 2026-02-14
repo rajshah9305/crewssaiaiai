@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field, validator
 
 
 class IntentType(str, Enum):
@@ -19,14 +20,14 @@ class ProcessRequest(BaseModel):
     api_key: str = Field(..., min_length=10, description="Groq API key")
     model: Optional[str] = Field(None, description="Groq model to use")
     options: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional options")
-    
+
     @validator('text')
     def sanitize_text(cls, v):
         """Basic input sanitization"""
         if not v or not v.strip():
             raise ValueError("Text cannot be empty")
         return v.strip()
-    
+
     @validator('api_key')
     def validate_api_key(cls, v):
         """Validate API key format"""
