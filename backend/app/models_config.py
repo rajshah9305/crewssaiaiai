@@ -41,9 +41,25 @@ GROQ_MODELS = {
         "supports_tools": False,
         "default_temperature": 1.0,
     },
+    "llama-3.1-8b-instant": {
+        "name": "Llama 3.1 8B Instant",
+        "description": "Extremely fast for simple tasks",
+        "max_tokens": 8192,
+        "supports_reasoning": False,
+        "supports_tools": False,
+        "default_temperature": 1.0,
+    },
+    "mixtral-8x7b-32768": {
+        "name": "Mixtral 8x7B",
+        "description": "High-quality MoE model",
+        "max_tokens": 32768,
+        "supports_reasoning": False,
+        "supports_tools": False,
+        "default_temperature": 0.7,
+    },
 }
 
-DEFAULT_MODEL = "openai/gpt-oss-120b"
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
 
 
 def get_model_config(model_name: str):

@@ -7,7 +7,8 @@ crewai==1.9.3
 crewai-tools==1.9.3
 duckduckgo-search==8.1.1
 langchain-community==0.0.38
-groq==0.4.2
+langchain-openai==0.1.25
+groq==1.0.0
 python-multipart==0.0.22
 slowapi==0.1.9
 httpx==0.28.1
