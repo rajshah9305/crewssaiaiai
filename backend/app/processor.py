@@ -1,15 +1,17 @@
+import asyncio
 import logging
 import time
 from typing import Any, Dict
 
 from crewai import Agent, Crew, Task
-from groq import Groq
+from groq import AsyncGroq
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 
 from app.intent_detector import IntentDetector
 from app.models import IntentType, ProcessResponse
 from app.models_config import DEFAULT_MODEL, get_model_config, is_valid_model
+from app.retry_handler import RetryHandler
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ class NLPProcessor:
 
     def __init__(self, api_key: str, model: str = None):
         self.api_key = api_key
-        self.groq_client = Groq(api_key=api_key)
+        self.groq_client = AsyncGroq(api_key=api_key)
 
         # Validate and set model
         if model and is_valid_model(model):
@@ -37,13 +39,23 @@ class NLPProcessor:
         intent, confidence = IntentDetector.detect(text)
         logger.info(f"🎯 Intent detected: {intent.value} (confidence: {confidence:.2f})")
 
-        # Route to appropriate processor
-        if confidence > 0.7 and intent != IntentType.CUSTOM:
-            logger.info(f"🤖 Routing to crewAI agent for {intent.value}")
-            result, tokens = await self._process_with_crew(text, intent, options)
-        else:
-            logger.info("⚡ Using direct Groq API call")
-            result, tokens = await self._process_with_groq(text, intent, options)
+        # Define processing logic for retry
+        async def run_processing():
+            # Route to appropriate processor
+            if confidence > 0.7 and intent != IntentType.CUSTOM:
+                logger.info(f"🤖 Routing to crewAI agent for {intent.value}")
+                return await self._process_with_crew(text, intent, options)
+            else:
+                logger.info("⚡ Using direct Groq API call")
+                return await self._process_with_groq(text, intent, options)
+
+        # Execute with retry logic
+        result, tokens = await RetryHandler.retry_with_backoff(
+            run_processing,
+            max_retries=2,
+            initial_delay=1.0,
+            exceptions=(Exception,)
+        )
 
         processing_time = time.time() - start_time
         logger.info(f"✅ Processing completed in {processing_time:.2f}s")
@@ -98,7 +110,8 @@ class NLPProcessor:
                 verbose=False
             )
 
-            result = crew.kickoff()
+            # Run blocking kickoff in a separate thread
+            result = await asyncio.to_thread(crew.kickoff)
 
             # Extract result text
             result_text = str(result) if result else "No result generated"
@@ -123,25 +136,32 @@ class NLPProcessor:
             system_prompt = IntentDetector.get_system_prompt(intent)
 
             # Build basic request parameters
+            temp = options.get("temperature")
+            if temp is None:
+                temp = self.model_config["default_temperature"]
+
+            max_t = options.get("max_tokens")
+            if max_t is None:
+                max_t = self.model_config["max_tokens"]
+            else:
+                max_t = min(max_t, self.model_config["max_tokens"])
+
             request_params = {
                 "model": self.model,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text}
                 ],
-                "temperature": options.get("temperature", self.model_config["default_temperature"]),
-                "max_tokens": min(
-                    options.get("max_tokens", self.model_config["max_tokens"]),
-                    self.model_config["max_tokens"]
-                ),
-                "top_p": options.get("top_p", 1),
+                "temperature": temp,
+                "max_tokens": max_t,
+                "top_p": options.get("top_p") or 1,
                 "stream": False,
             }
 
             logger.info(f"📡 Calling Groq API with model: {self.model}")
             logger.info(f"🎛️  Temperature: {request_params['temperature']}, Max tokens: {request_params['max_tokens']}")
 
-            response = self.groq_client.chat.completions.create(**request_params)
+            response = await self.groq_client.chat.completions.create(**request_params)
 
             result = response.choices[0].message.content
             tokens = response.usage.total_tokens if response.usage else 0
