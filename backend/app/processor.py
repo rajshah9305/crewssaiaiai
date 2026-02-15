@@ -5,8 +5,8 @@ from typing import Any, Dict
 
 from crewai import Agent, Crew, Task
 from groq import AsyncGroq
-from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_openai import ChatOpenAI
 
 from app.intent_detector import IntentDetector
 from app.models import IntentType, ProcessResponse
