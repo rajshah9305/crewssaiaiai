@@ -5,6 +5,7 @@ from typing import Any, Dict
 from crewai import Agent, Crew, Task
 from groq import Groq
 from langchain_openai import ChatOpenAI
+from langchain_community.tools import DuckDuckGoSearchRun
 
 from app.intent_detector import IntentDetector
 from app.models import IntentType, ProcessResponse
@@ -62,6 +63,13 @@ class NLPProcessor:
         """Process using crewAI agents"""
         try:
             logger.info(f"🔧 Creating specialized agent for {intent.value}")
+
+            # Setup tools
+            tools = []
+            if options.get('enable_search'):
+                logger.info("🔍 Enabling search tool")
+                tools.append(DuckDuckGoSearchRun())
+
             # Create specialized agent based on intent
             agent = Agent(
                 role=self._get_agent_role(intent),
@@ -69,7 +77,9 @@ class NLPProcessor:
                 backstory=self._get_agent_backstory(intent),
                 verbose=False,
                 allow_delegation=False,
-                llm=self._create_llm_config()
+                llm=self._create_llm_config(),
+                tools=tools,
+                allow_code_execution=options.get('enable_code', False)
             )
 
             logger.info("📋 Creating task for agent")

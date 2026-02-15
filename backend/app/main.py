@@ -130,7 +130,7 @@ async def process_text(request: Request, payload: ProcessRequest):
         # Process the request
         result = await processor.process(
             text=payload.text,
-            options=payload.options
+            options=payload.options.model_dump()
         )
 
         return result

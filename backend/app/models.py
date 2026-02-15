@@ -14,12 +14,21 @@ class IntentType(str, Enum):
     CUSTOM = "custom"
 
 
+class ProcessOptions(BaseModel):
+    """Optional configuration for processing"""
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    top_p: Optional[float] = None
+    enable_search: bool = False
+    enable_code: bool = False
+
+
 class ProcessRequest(BaseModel):
     """Request model for NLP processing"""
     text: str = Field(..., min_length=1, max_length=100000, description="Input text to process")
     api_key: str = Field(..., min_length=10, description="Groq API key")
     model: Optional[str] = Field(None, description="Groq model to use")
-    options: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional options")
+    options: ProcessOptions = Field(default_factory=ProcessOptions, description="Additional options")
 
     @field_validator('text')
     @classmethod

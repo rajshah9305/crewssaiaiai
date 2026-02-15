@@ -46,7 +46,7 @@ function App() {
     setShowApiKeyModal(false)
   }
 
-  const handleProcess = async (text) => {
+  const handleProcess = async (text, options = {}) => {
     setLoading(true)
     setError(null)
     setLogs([])
@@ -78,7 +78,10 @@ function App() {
           text,
           api_key: apiKey,
           model: selectedModel,
-          options: {},
+          options: {
+            enable_search: options.enableSearch,
+            enable_code: options.enableCode,
+          },
         }),
       })
 
