@@ -19,7 +19,7 @@ function App() {
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || ''
         const response = await fetch(`${apiUrl}/api/models`)
         const data = await response.json()
         setModels(data.models)
@@ -65,7 +65,7 @@ function App() {
       addLog(`📊 Model: ${selectedModel}`, 'info')
       addLog('🔍 Analyzing intent...', 'agent')
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const apiUrl = import.meta.env.VITE_API_URL || ''
       
       addLog('📡 Sending to backend...', 'info')
       
