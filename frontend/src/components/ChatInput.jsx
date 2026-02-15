@@ -2,11 +2,13 @@ import { useState } from 'react'
 
 function ChatInput({ onSubmit, loading, disabled, models, selectedModel, onModelChange }) {
   const [input, setInput] = useState('')
+  const [enableSearch, setEnableSearch] = useState(false)
+  const [enableCode, setEnableCode] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (input.trim() && !loading) {
-      onSubmit(input)
+      onSubmit(input, { enableSearch, enableCode })
       setInput('')
     }
   }
@@ -91,6 +93,33 @@ function ChatInput({ onSubmit, loading, disabled, models, selectedModel, onModel
             )}
           </button>
         </form>
+
+        <div className="mt-3 flex items-center space-x-6">
+          <label className="flex items-center space-x-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={enableSearch}
+              onChange={(e) => setEnableSearch(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+              disabled={loading}
+            />
+            <span className="text-xs font-medium text-gray-700 group-hover:text-primary-600 transition-colors">
+              Enable Search
+            </span>
+          </label>
+          <label className="flex items-center space-x-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={enableCode}
+              onChange={(e) => setEnableCode(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+              disabled={loading}
+            />
+            <span className="text-xs font-medium text-gray-700 group-hover:text-primary-600 transition-colors">
+              Enable Code
+            </span>
+          </label>
+        </div>
 
         <div className="mt-2 text-xs text-gray-600 flex items-center justify-between">
           <span>Press Enter to send, Shift+Enter for new line</span>
