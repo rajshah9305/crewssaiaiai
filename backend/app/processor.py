@@ -8,9 +8,10 @@ from groq import AsyncGroq
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_openai import ChatOpenAI
 
+from app.config import settings
 from app.intent_detector import IntentDetector
 from app.models import IntentType, ProcessResponse
-from app.models_config import DEFAULT_MODEL, get_model_config, is_valid_model
+from app.models_config import get_model_config, is_valid_model
 from app.retry_handler import RetryHandler
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class NLPProcessor:
         if model and is_valid_model(model):
             self.model = model
         else:
-            self.model = DEFAULT_MODEL
+            self.model = settings.default_groq_model
 
         self.model_config = get_model_config(self.model)
 

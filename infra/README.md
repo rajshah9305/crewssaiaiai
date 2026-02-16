@@ -1,6 +1,7 @@
 # Infrastructure & Deployment
 
-This directory contains deployment configurations and infrastructure setup for the Universal NLP Interface.
+This directory contains deployment guides for the Universal NLP Interface.
+The Vercel configuration (`vercel.json`) lives at the repository root.
 
 ## Deployment Options
 
@@ -94,7 +95,7 @@ wrangler pages deploy dist
 - `API_PORT`: Port to bind (default: 8000)
 - `CORS_ORIGINS`: Comma-separated allowed origins
 - `RATE_LIMIT_PER_MINUTE`: Rate limit (default: 20)
-- `DEFAULT_GROQ_MODEL`: Default Groq model (default: mixtral-8x7b-32768)
+- `DEFAULT_GROQ_MODEL`: Default Groq model (default: llama-3.3-70b-versatile)
 
 ### Frontend
 - `VITE_API_URL`: Backend API URL

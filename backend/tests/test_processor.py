@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from app.processor import NLPProcessor
+
 
 @pytest.mark.asyncio
 async def test_processor_init():
