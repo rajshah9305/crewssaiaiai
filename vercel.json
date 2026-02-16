@@ -1,9 +1,9 @@
 {
   "version": 2,
   "name": "universal-nlp-interface",
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "installCommand": "npm install --prefix frontend",
+  "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
-  "framework": "vite",
   "functions": {
     "api/index.py": {
       "maxDuration": 60
