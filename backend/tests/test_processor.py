@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from app.processor import NLPProcessor
-from app.models import IntentType
 
 @pytest.mark.asyncio
 async def test_processor_init():
