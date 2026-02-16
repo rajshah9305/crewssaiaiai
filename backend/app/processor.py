@@ -89,7 +89,7 @@ class NLPProcessor:
                 backstory=self._get_agent_backstory(intent),
                 verbose=False,
                 allow_delegation=False,
-                llm=self._create_llm_config(),
+                llm=self._create_llm_config(options),
                 tools=tools,
                 allow_code_execution=options.get('enable_code', False)
             )
@@ -114,7 +114,9 @@ class NLPProcessor:
             result = await asyncio.to_thread(crew.kickoff)
 
             # Extract result text
-            result_text = str(result) if result else "No result generated"
+            result_text = result.raw if hasattr(result, 'raw') else str(result)
+            if not result:
+                result_text = "No result generated"
 
             # Estimate tokens (rough approximation)
             tokens = len(text.split()) + len(result_text.split())
@@ -173,12 +175,15 @@ class NLPProcessor:
             logger.error(f"❌ Groq API error: {e}")
             raise
 
-    def _create_llm_config(self) -> ChatOpenAI:
+    def _create_llm_config(self, options: Dict[str, Any] = None) -> ChatOpenAI:
         """Create LLM configuration for crewAI"""
+        options = options or {}
         return ChatOpenAI(
             openai_api_base="https://api.groq.com/openai/v1",
             openai_api_key=self.api_key,
-            model_name=self.model
+            model_name=self.model,
+            temperature=options.get("temperature", self.model_config["default_temperature"]),
+            max_tokens=options.get("max_tokens", self.model_config["max_tokens"])
         )
 
     def _get_agent_role(self, intent: IntentType) -> str:
@@ -228,4 +233,3 @@ class NLPProcessor:
             IntentType.CUSTOM: "A helpful response to the user's request",
         }
         return outputs.get(intent, outputs[IntentType.CUSTOM])
-

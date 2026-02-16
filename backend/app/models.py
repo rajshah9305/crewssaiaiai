@@ -21,6 +21,7 @@ class ProcessOptions(BaseModel):
     top_p: Optional[float] = None
     enable_search: bool = False
     enable_code: bool = False
+    reasoning_effort: Optional[str] = Field(None, description="Reasoning effort for models that support it")
 
 
 class ProcessRequest(BaseModel):

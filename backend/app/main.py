@@ -16,7 +16,7 @@ from app.processor import NLPProcessor
 
 # Configure logging
 logging.basicConfig(
-    level=getattr(logging, settings.log_level),
+    level=getattr(logging, settings.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -165,12 +165,15 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def general_exception_handler(request: Request, exc: Exception):
     """General exception handler"""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    content = {
+        "error": "Internal server error",
+        "code": "INTERNAL_ERROR"
+    }
+    if settings.environment == "development":
+        content["detail"] = str(exc)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "Internal server error",
-            "code": "INTERNAL_ERROR"
-        }
+        content=content
     )
 
 
