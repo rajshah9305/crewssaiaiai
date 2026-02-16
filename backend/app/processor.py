@@ -3,10 +3,7 @@ import logging
 import time
 from typing import Any, Dict
 
-from crewai import Agent, Crew, Task
 from groq import AsyncGroq
-from langchain_community.tools import DuckDuckGoSearchRun
-from langchain_openai import ChatOpenAI
 
 from app.config import settings
 from app.intent_detector import IntentDetector
@@ -15,6 +12,22 @@ from app.models_config import get_model_config, is_valid_model
 from app.retry_handler import RetryHandler
 
 logger = logging.getLogger(__name__)
+
+# crewAI and its heavy dependencies are imported lazily to keep the serverless
+# function bootable even when the full dependency tree isn't available (e.g. Vercel).
+_crewai_available = None
+
+
+def _check_crewai():
+    global _crewai_available
+    if _crewai_available is None:
+        try:
+            from crewai import Agent, Crew, Task  # noqa: F401
+            _crewai_available = True
+        except ImportError:
+            _crewai_available = False
+            logger.warning("crewAI not available — falling back to direct Groq API calls")
+    return _crewai_available
 
 
 class NLPProcessor:
@@ -38,16 +51,16 @@ class NLPProcessor:
 
         # Detect intent
         intent, confidence = IntentDetector.detect(text)
-        logger.info(f"🎯 Intent detected: {intent.value} (confidence: {confidence:.2f})")
+        logger.info(f"Intent detected: {intent.value} (confidence: {confidence:.2f})")
 
         # Define processing logic for retry
         async def run_processing():
-            # Route to appropriate processor
-            if confidence > 0.7 and intent != IntentType.CUSTOM:
-                logger.info(f"🤖 Routing to crewAI agent for {intent.value}")
+            # Route to crewAI agent when confidence is high and crewAI is available
+            if confidence > 0.7 and intent != IntentType.CUSTOM and _check_crewai():
+                logger.info(f"Routing to crewAI agent for {intent.value}")
                 return await self._process_with_crew(text, intent, options)
             else:
-                logger.info("⚡ Using direct Groq API call")
+                logger.info("Using direct Groq API call")
                 return await self._process_with_groq(text, intent, options)
 
         # Execute with retry logic
@@ -59,7 +72,7 @@ class NLPProcessor:
         )
 
         processing_time = time.time() - start_time
-        logger.info(f"✅ Processing completed in {processing_time:.2f}s")
+        logger.info(f"Processing completed in {processing_time:.2f}s")
 
         return ProcessResponse(
             intent=intent.value,
@@ -75,12 +88,16 @@ class NLPProcessor:
     ) -> tuple[str, int]:
         """Process using crewAI agents"""
         try:
-            logger.info(f"🔧 Creating specialized agent for {intent.value}")
+            from crewai import Agent, Crew, Task
+            from langchain_openai import ChatOpenAI
+
+            logger.info(f"Creating specialized agent for {intent.value}")
 
             # Setup tools
             tools = []
             if options.get('enable_search'):
-                logger.info("🔍 Enabling search tool")
+                from langchain_community.tools import DuckDuckGoSearchRun
+                logger.info("Enabling search tool")
                 tools.append(DuckDuckGoSearchRun())
 
             # Create specialized agent based on intent
@@ -95,16 +112,14 @@ class NLPProcessor:
                 allow_code_execution=options.get('enable_code', False)
             )
 
-            logger.info("📋 Creating task for agent")
-            # Create task
+            logger.info("Creating task for agent")
             task = Task(
                 description=text,
                 agent=agent,
                 expected_output=self._get_expected_output(intent)
             )
 
-            logger.info(f"🚀 Executing crew with {self.model}")
-            # Execute crew
+            logger.info(f"Executing crew with {self.model}")
             crew = Crew(
                 agents=[agent],
                 tasks=[task],
@@ -114,19 +129,18 @@ class NLPProcessor:
             # Run blocking kickoff in a separate thread
             result = await asyncio.to_thread(crew.kickoff)
 
-            # Extract result text
             result_text = str(result) if result else "No result generated"
-
-            # Estimate tokens (rough approximation)
             tokens = len(text.split()) + len(result_text.split())
 
-            logger.info("✨ CrewAI execution completed successfully")
+            logger.info("CrewAI execution completed successfully")
             return result_text, tokens
 
+        except ImportError:
+            logger.warning("crewAI not available, falling back to direct Groq API")
+            return await self._process_with_groq(text, intent, options)
         except Exception as e:
-            logger.error(f"❌ CrewAI processing error: {e}")
-            logger.info("🔄 Falling back to direct Groq API")
-            # Fallback to direct Groq call
+            logger.error(f"CrewAI processing error: {e}")
+            logger.info("Falling back to direct Groq API")
             return await self._process_with_groq(text, intent, options)
 
     async def _process_with_groq(
@@ -159,23 +173,24 @@ class NLPProcessor:
                 "stream": False,
             }
 
-            logger.info(f"📡 Calling Groq API with model: {self.model}")
-            logger.info(f"🎛️  Temperature: {request_params['temperature']}, Max tokens: {request_params['max_tokens']}")
+            logger.info(f"Calling Groq API with model: {self.model}")
+            logger.info(f"Temperature: {request_params['temperature']}, Max tokens: {request_params['max_tokens']}")
 
             response = await self.groq_client.chat.completions.create(**request_params)
 
             result = response.choices[0].message.content
             tokens = response.usage.total_tokens if response.usage else 0
 
-            logger.info(f"💬 Received response: {tokens} tokens used")
+            logger.info(f"Received response: {tokens} tokens used")
             return result, tokens
 
         except Exception as e:
-            logger.error(f"❌ Groq API error: {e}")
+            logger.error(f"Groq API error: {e}")
             raise
 
-    def _create_llm_config(self) -> ChatOpenAI:
+    def _create_llm_config(self):
         """Create LLM configuration for crewAI"""
+        from langchain_openai import ChatOpenAI
         return ChatOpenAI(
             openai_api_base="https://api.groq.com/openai/v1",
             openai_api_key=self.api_key,
