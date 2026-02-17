@@ -1,37 +1,33 @@
 import os
 import sys
-import traceback
 
-# Ensure the backend package is importable in Vercel's serverless runtime.
-# __file__ resolves to /var/task/api/index.py; backend lives at /var/task/backend.
-_backend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend")
-if _backend_path not in sys.path:
-    sys.path.insert(0, _backend_path)
+# Add backend to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 try:
-    from app.main import app  # noqa: E402
+    from app.main import app
 except Exception as e:
-    # If import fails, create a minimal FastAPI app to show the error
-    print(f"ERROR: Failed to import app: {e}")
-    print(traceback.format_exc())
-    
+    # Fallback: create minimal app that shows the error
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
+    import traceback
     
     app = FastAPI()
     
+    error_msg = str(e)
+    error_trace = traceback.format_exc()
+    
     @app.get("/")
-    @app.get("/api/{path:path}")
-    @app.post("/api/{path:path}")
-    async def error_handler():
+    @app.get("/{path:path}")
+    @app.post("/{path:path}")
+    async def error_handler(path: str = ""):
         return JSONResponse(
             status_code=500,
             content={
-                "error": "Function initialization failed",
-                "detail": str(e),
-                "traceback": traceback.format_exc()
+                "error": "Failed to import main app",
+                "detail": error_msg,
+                "traceback": error_trace,
+                "path_attempted": os.path.join(os.path.dirname(__file__), '..', 'backend'),
+                "sys_path": sys.path[:5]
             }
         )
-
-# Vercel's Python runtime looks for an `app` ASGI/WSGI object in this module.
-# The import above exposes it as `app`.
