@@ -120,11 +120,6 @@ function ChatInput({ onSubmit, loading, disabled, models, selectedModel, onModel
             </span>
           </label>
         </div>
-
-        <div className="mt-2 text-xs text-gray-600 flex items-center justify-between">
-          <span>Press Enter to send, Shift+Enter for new line</span>
-          <span>{input.length} characters</span>
-        </div>
       </div>
     </div>
   )
