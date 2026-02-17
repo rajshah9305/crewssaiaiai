@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from pydantic_settings import BaseSettings
@@ -19,9 +20,9 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_origins.split(",")]
 
     model_config = {
-        "env_file": ".env",
         "case_sensitive": False,
     }
 
 
+# Initialize settings - will use environment variables in Vercel
 settings = Settings()

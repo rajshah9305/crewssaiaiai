@@ -1,8 +1,6 @@
 fastapi==0.109.0
-uvicorn[standard]>=0.34.0
 pydantic>=2.10.0
 pydantic-settings==2.10.1
-python-dotenv==1.1.1
 crewai>=0.100.0
 crewai-tools==1.9.3
 duckduckgo-search==8.1.1
@@ -12,6 +10,3 @@ groq==1.0.0
 python-multipart==0.0.22
 slowapi==0.1.9
 httpx==0.28.1
-pytest==7.4.4
-pytest-asyncio==0.23.3
-ruff==0.1.14
