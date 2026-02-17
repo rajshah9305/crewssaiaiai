@@ -32,8 +32,10 @@ A production-ready full-stack application powered by crewAI agents and Groq API 
 ## Architecture
 
 - **Frontend**: React + Vite + Tailwind CSS (Two-pane layout with live execution tracking)
-- **Backend**: FastAPI + crewAI + Groq API
-- **Deployment**: Cloud-ready (no Docker required)
+- **Backend**: FastAPI + Groq API (with optional crewAI for local development)
+- **Deployment**: Vercel-optimized (lightweight dependencies for serverless)
+
+**Note**: The Vercel deployment uses direct Groq API calls to stay within the 250MB serverless function limit. For local development with full crewAI features, use `backend/requirements.txt`.
 
 ## New Interface Design
 
