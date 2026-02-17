@@ -23,10 +23,11 @@ def _check_crewai():
     if _crewai_available is None:
         try:
             from crewai import Agent, Crew, Task  # noqa: F401
+            from langchain_openai import ChatOpenAI  # noqa: F401
             _crewai_available = True
-        except ImportError:
+        except ImportError as e:
             _crewai_available = False
-            logger.warning("crewAI not available — falling back to direct Groq API calls")
+            logger.warning(f"crewAI dependencies not available ({e}) — falling back to direct Groq API calls")
     return _crewai_available
 
 
@@ -194,7 +195,7 @@ class NLPProcessor:
         return ChatOpenAI(
             openai_api_base="https://api.groq.com/openai/v1",
             openai_api_key=self.api_key,
-            model_name=self.model
+            model=self.model
         )
 
     def _get_agent_role(self, intent: IntentType) -> str:
