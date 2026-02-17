@@ -151,11 +151,39 @@ Process natural language requests with automatic intent detection.
 
 See `.env.example` files in `frontend/` and `backend/` directories.
 
-## Deployment
+## Vercel Deployment
 
-1. Deploy backend to any Python-compatible platform (AWS Lambda, Google Cloud Run, Railway, etc.)
-2. Deploy frontend to static hosting (Vercel, Netlify, Cloudflare Pages, etc.)
-3. Configure environment variables in your deployment platform
+This application is configured for one-click deployment on Vercel.
+
+### Deploy Steps
+
+1. **Import to Vercel**
+   - Go to https://vercel.com/new
+   - Import your GitHub repository
+   - Vercel auto-detects configuration from `vercel.json`
+
+2. **Add Environment Variables**
+   - `GROQ_API_KEY`: Your Groq API key (required)
+   - `VITE_API_URL`: Your Vercel URL (update after first deploy)
+   - `CORS_ORIGINS`: Your Vercel URL (update after first deploy)
+
+3. **Deploy**
+   - Click "Deploy" and wait 2-3 minutes
+   - Note your deployment URL
+
+4. **Update Environment Variables**
+   - Update `VITE_API_URL` and `CORS_ORIGINS` with your Vercel URL
+   - Redeploy to apply changes
+
+5. **Test**
+   - Visit your Vercel URL
+   - Enter your Groq API key in the UI
+   - Submit a test task
+
+### How It Works
+- Frontend: Built with Vite, served as static files
+- Backend: Runs as Vercel serverless functions via `/api/*` routes
+- Auto-scaling: Vercel handles scaling automatically
 
 ## Security
 
