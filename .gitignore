@@ -16,6 +16,7 @@ htmlcov/
 *.egg-info/
 dist/
 build/
+.ruff_cache/
 
 # Node
 node_modules/

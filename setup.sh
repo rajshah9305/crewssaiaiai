@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Universal NLP Interface Setup Script
-# This script sets up both backend and frontend for local development
-# Requires Python 3.11 for crewAI compatibility
+# Requires Python 3.11 for optimal compatibility
 
 set -e
 
@@ -14,8 +13,8 @@ echo "📋 Checking prerequisites..."
 
 # Check Python 3.11
 if ! command -v python3.11 &> /dev/null; then
-    echo "❌ Python 3.11 is not installed. Please install Python 3.11 for crewAI compatibility."
-    echo "   You can install it via: brew install python@3.11 (macOS) or download from python.org"
+    echo "❌ Python 3.11 is required but not installed."
+    echo "   Install via: brew install python@3.11 (macOS) or download from python.org"
     exit 1
 fi
 echo "✅ Python 3.11 found: $(python3.11 --version)"
@@ -38,7 +37,7 @@ echo ""
 echo "📦 Setting up backend..."
 cd backend
 
-# Create virtual environment
+# Create virtual environment with Python 3.11
 if [ ! -d "venv" ]; then
     echo "Creating Python 3.11 virtual environment..."
     python3.11 -m venv venv
@@ -88,7 +87,7 @@ echo "✨ Setup complete!"
 echo ""
 echo "📝 Next steps:"
 echo "1. Get a Groq API key from https://console.groq.com"
-echo "2. Review and update configuration files:"
+echo "2. Update configuration files:"
 echo "   - backend/.env"
 echo "   - frontend/.env"
 echo ""
@@ -104,11 +103,5 @@ echo "  cd frontend"
 echo "  npm run dev"
 echo ""
 echo "Then visit http://localhost:5173"
-echo ""
-echo "📚 Documentation:"
-echo "  - README.md - Project overview"
-echo "  - API.md - API documentation"
-echo "  - DEPLOYMENT.md - Deployment guide"
-echo "  - CONTRIBUTING.md - Contributing guide"
 echo ""
 echo "Happy coding! 🎉"
